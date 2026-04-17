@@ -1,0 +1,126 @@
+---
+title: "Final Project"
+author: "AFN"
+date: "2026-04-17"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+library(dplyr)
+library(tseries)
+library(fpp2)
+library(ggplot2)
+library(urca)
+```
+
+```{r read in data}
+traffic <- read.csv('Data/daily-website-visitors.csv')
+```
+
+# Univariate Unique Visits 
+
+```{r isolate unique visits}
+unique <- ts(select(traffic, Unique.Visits), 
+             freq = 365,
+             start = c(2014, 257))
+```
+
+```{r}
+autoplot(unique) 
+```
+
+Check if variable is stationary 
+
+```{r}
+par(mfrow = c(1,2), family = 'serif')
+acf(unique)
+pacf(unique)
+```
+
+
+```{r}
+adf.test(unique)
+```
+
+```{r}
+summary(ur.kpss(unique))
+```
+
+ACF plot suggests there are seasonal fluctuations in the data. 
+
+We will take the seasonal difference of the data before checking for stationarity. 
+
+```{r}
+unique.diff.1 <- diff(unique)
+autoplot(unique.diff.1)
+```
+
+```{r}
+par(mfrow = c(1,2))
+acf(unique.diff.1)
+pacf(unique.diff.1)
+```
+
+
+```{r}
+adf.test(unique.diff.1)
+```
+
+
+```{r}
+nsdiffs(unique)
+```
+
+
+```{r}
+unique.sdiff.1 <- diff(unique, lag = 7)
+par(mfrow = c(1,2), family = 'serif')
+acf(unique.sdiff.1) 
+pacf(unique.sdiff.1)
+```
+
+```{r}
+autoplot(unique.sdiff.1)
+```
+
+
+```{r}
+adf.test(unique.sdiff.1)
+```
+
+
+```{r}
+summary(ur.kpss(unique.sdiff.1))
+```
+
+
+
+```{r}
+unique.sdiff.2 <- diff(unique.sdiff.1, m = 365)
+par(mfrow = c(1,2), family = 'serif')
+acf(unique.sdiff.2) 
+pacf(unique.sdiff.2)
+```
+
+```{r}
+autoplot(unique.sdiff.2)
+```
+
+```{r}
+adf.test(unique.sdiff.2)
+```
+
+```{r}
+summary(ur.kpss(unique.sdiff.2))
+```
+
+
+
+
+
+
+
