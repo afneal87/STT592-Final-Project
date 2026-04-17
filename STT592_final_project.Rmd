@@ -15,6 +15,7 @@ library(tseries)
 library(fpp2)
 library(ggplot2)
 library(urca)
+library(TSA)
 ```
 
 ```{r read in data}
@@ -98,7 +99,6 @@ summary(ur.kpss(unique.sdiff.1))
 ```
 
 
-
 ```{r}
 unique.sdiff.2 <- diff(unique.sdiff.1, m = 365)
 par(mfrow = c(1,2), family = 'serif')
@@ -118,9 +118,23 @@ adf.test(unique.sdiff.2)
 summary(ur.kpss(unique.sdiff.2))
 ```
 
+## identify candidate models 
 
 
+```{r}
+eacf(unique.sdiff.2)
+```
 
+Possible models based on EACF are AR(1), MA(1); or AR(0), MA(2) 
+
+Seasonal components: MA(2), AR(2)
+
+```{r}
+auto.arima(unique)
+
+CANDIDATE MODELS 
+* SARIMA(1,0,1) x (2,2,2)
+* SARIMA(0,0,2) x (2,2,2)
 
 
 
