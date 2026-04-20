@@ -26,7 +26,7 @@ traffic <- read.csv('Data/daily-website-visitors.csv')
 
 ```{r isolate unique visits}
 unique <- ts(select(traffic, Unique.Visits), 
-             freq = 365,
+             freq = 7,
              start = c(2014, 257))
 ```
 
@@ -87,6 +87,7 @@ KPSS also says data are stationary.
 
 ```{r}
 nsdiffs(unique)
+frequency(unique)
 ```
 
 Function says number of seasonal differences to take is 0. 
@@ -97,6 +98,8 @@ par(mfrow = c(1,2), family = 'serif')
 acf(unique.sdiff.1) 
 pacf(unique.sdiff.1)
 ```
+
+PACF tail off so we need seasonal MA part 
 
 ```{r}
 autoplot(unique.sdiff.1)
@@ -142,14 +145,6 @@ KPSS says data are stationary.
 
 
 ```{r}
-eacf(unique.sdiff.2)
-```
-
-Possible models based on EACF are AR(1), MA(1); or AR(0), MA(2) 
-
-Seasonal components: MA(2), AR(2)
-
-```{r}
 auto.arima(unique)
 ```
 
@@ -158,6 +153,9 @@ Auto ARIMA does not include a seasonal component or regular differencing.
 CANDIDATE MODELS 
 * SARIMA(1,0,1) x (2,2,2)
 * SARIMA(0,0,2) x (2,2,2)
+* ARIMA(5,0,1) - from auto.arima()
+
+
 
 
 
