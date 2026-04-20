@@ -47,9 +47,14 @@ pacf(unique)
 adf.test(unique)
 ```
 
+ADF test says data are stationary.
+
+
 ```{r}
 summary(ur.kpss(unique))
 ```
+
+KPSS says data are not stationary.
 
 ACF plot suggests there are seasonal fluctuations in the data. 
 
@@ -66,16 +71,25 @@ acf(unique.diff.1)
 pacf(unique.diff.1)
 ```
 
+ACF plot is kind of crazy 
 
 ```{r}
 adf.test(unique.diff.1)
 ```
 
+ADF says data are stationary. 
+
+```{r}
+summary(ur.kpss(unique.diff.1))
+```
+
+KPSS also says data are stationary.
 
 ```{r}
 nsdiffs(unique)
 ```
 
+Function says number of seasonal differences to take is 0. 
 
 ```{r}
 unique.sdiff.1 <- diff(unique, lag = 7)
@@ -93,14 +107,16 @@ autoplot(unique.sdiff.1)
 adf.test(unique.sdiff.1)
 ```
 
+ADF says data are stationary.
 
 ```{r}
 summary(ur.kpss(unique.sdiff.1))
 ```
 
+KPSS also says data are stationary.
 
 ```{r}
-unique.sdiff.2 <- diff(unique.sdiff.1, m = 365)
+unique.sdiff.2 <- diff(unique.sdiff.1, lag = 7)
 par(mfrow = c(1,2), family = 'serif')
 acf(unique.sdiff.2) 
 pacf(unique.sdiff.2)
@@ -114,9 +130,13 @@ autoplot(unique.sdiff.2)
 adf.test(unique.sdiff.2)
 ```
 
+ADF says data are stationary.
+
 ```{r}
 summary(ur.kpss(unique.sdiff.2))
 ```
+
+KPSS says data are stationary.
 
 ## identify candidate models 
 
@@ -131,6 +151,9 @@ Seasonal components: MA(2), AR(2)
 
 ```{r}
 auto.arima(unique)
+```
+
+Auto ARIMA does not include a seasonal component or regular differencing. 
 
 CANDIDATE MODELS 
 * SARIMA(1,0,1) x (2,2,2)
