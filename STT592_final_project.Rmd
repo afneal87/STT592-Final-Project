@@ -29,12 +29,18 @@ This project uses data recording internet traffic at various websites. The varia
 ## Daily Unique Visits 
 
 ```{r isolate unique visits}
+# unique variable 
 unique <- ts(select(traffic, Unique.Visits),
              frequency = 7)
+#split into training and testing sets 
+pred_num <- round(length(unique)*0.1, 0)
+train_num <- length(unique) - pred_num
+unique.train <- head(unique, train_num)
+unique.test <- tail(unique, pred_num)
 ```
 
 ```{r, dpi=300}
-autoplot(unique) +
+autoplot(unique.train) +
   theme_classic() +
   labs(y = 'Number of Unique Visits',
        title = 'Daily Unique Website Visits') +
@@ -45,28 +51,28 @@ The time series plot appears to show seasonal fluctuations, which means we need 
 
 ```{r}
 par(mfrow = c(1,2), family = 'serif')
-acf(unique)
-pacf(unique)
+acf(unique.train)
+pacf(unique.train)
 ```
 
 Fluctuations in the ACF plot also suggest a seasonal component based on the pattern of significant autocorrelation coefficients spiking at each seasonal lag. 
 
 
 ```{r}
-adf.test(unique)
+adf.test(unique.train)
 ```
 
 According to the ADF test, the data are stationary; however, this test is not sensitive to seasonal fluctuations. This indicates there may be no long-term trend in the data. 
 
 
 ```{r}
-summary(ur.kpss(unique))
+summary(ur.kpss(unique.train))
 ```
 
 The KPSS test suggests the data are non-stationary. This may be a result of a long-term trend that is not yet detected or a result of the seasonal component influencing the stationary measure. We will take one seasonal difference and re-evaluate the data. 
 
 ```{r}
-unique.sdiff.1 <- diff(unique, lag = 7)
+unique.sdiff.1 <- diff(unique.train, lag = 7)
 par(mfrow = c(1,2), family = 'serif')
 acf(unique.sdiff.1) 
 pacf(unique.sdiff.1)
@@ -97,7 +103,7 @@ The KPSS test also suggests the data are stationary. We will now identify some c
 We will use the auto.arima() function to identify one candidate model. 
 
 ```{r}
-unique.auto <- auto.arima(unique)
+unique.auto <- auto.arima(unique.train)
 unique.auto
 ```
 
@@ -106,14 +112,14 @@ The auto.arima() function identified a SARIMA(1,0,3) x (0,1,2) model.
 Based on the ACF and PACF plots, we will fit the following three candidate models: 
 * SARIMA(5,0,1) x (2,1,2)
 * SARIMA(1,0,2) x (2,1,4)
-* SARIMA(1,0,3) x (0,1,2) - from auto.arima() 
+* SARIMA(2,0,2) x (0,1,1) - from auto.arima() 
 
 ### Fit Candidate Models and Evaluate Diagnostics 
 
 SARIMA(5,0,1) x (2,1,2)
 
 ```{r}
-unique.501.212 <- Arima(unique, order = c(5,0,1), seasonal = c(2,1,2))
+unique.501.212 <- Arima(unique.train, order = c(5,0,1), seasonal = c(2,1,2))
 tsdiag(unique.501.212)
 ```
 
@@ -122,7 +128,7 @@ Based on the model diagnostics, this model is not appropriate for the data. The 
 SARIMA(1,0,2) x (2,1,4)
 
 ```{r}
-unique.102.214 <- Arima(unique, order = c(1,0,2), seasonal = c(2,1,4))
+unique.102.214 <- Arima(unique.train, order = c(1,0,2), seasonal = c(2,1,4))
 tsdiag(unique.102.214)
 ```
 
@@ -169,14 +175,14 @@ Based on the ACF and PACF plots, there appears to be a seasonal AR component and
 SARIMA(3,0,1) x (1,2,3)
 
 ```{r}
-unique.301.123 <- Arima(unique, order = c(3,0,1), seasonal = c(1,2,3))
+unique.301.123 <- Arima(unique.train, order = c(3,0,1), seasonal = c(1,2,3))
 tsdiag(unique.301.123)
 ```
 
 The diagnostic tests show that this model is not an appropriate fit to the data. 
 
 ```{r}
-unique.100.221 <- Arima(unique, order = c(1,0,0), seasonal = c(2,2,1))
+unique.100.221 <- Arima(unique.train, order = c(1,0,0), seasonal = c(2,2,1))
 tsdiag(unique.100.221)
 ```
 
@@ -184,7 +190,7 @@ The diagnostic criteria also shows this model is not an appropriate fit to the d
 
 
 ```{r}
-unique.506.223 <- Arima(unique, order = c(5,0,6), seasonal = c(2,2,3))
+unique.506.223 <- Arima(unique.train, order = c(5,0,6), seasonal = c(2,2,3))
 tsdiag(unique.506.223)
 ```
 
@@ -193,4 +199,17 @@ checkresiduals(unique.506.223)
 ```
 
 Based on the model diagnostics, this is an appropriate model for the data. 
+
+```{r}
+unique.forecast <- forecast(unique.506.223, h = pred_num)
+```
+
+```{r}
+autoplot(unique) +
+  autolayer(unique.forecast, alpha = .5)
+```
+
+```{r}
+accuracy(unique.forecast, unique.test)
+```
 
