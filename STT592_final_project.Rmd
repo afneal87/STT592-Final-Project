@@ -136,6 +136,61 @@ tsdiag(unique.auto)
 
 The model diagnostics for the auto.arima() model also show that it is not an appropriate fit for the data based on the Ljung-Box p-values. 
 
+We will take another seasonal difference to see if the models fit more appropriately. 
+
+```{r}
+unique.sdiff.2 <- diff(unique.sdiff.1, lag = 7)
+autoplot(unique.sdiff.2)
+```
+
+```{r}
+adf.test(unique.sdiff.2)
+```
+
+ADF test suggests the data are stationary.
+
+```{r}
+summary(ur.kpss(unique.sdiff.2))
+```
+
+KPSS test also suggests data are stationary. 
+
+```{r}
+par(mfrow = c(1,2), family = 'serif')
+acf(unique.sdiff.2)
+pacf(unique.sdiff.2)
+```
+
+Based on the ACF and PACF plots, there appears to be a seasonal AR component and seasonal MA component. We will evaluate the following candidate models: 
+
+* SARIMA(3,0,1) x (1,2,3)
+* SARIMA(1,0,0) x (2,2,1) 
+
+SARIMA(3,0,1) x (1,2,3)
+
+```{r}
+unique.301.123 <- Arima(unique, order = c(3,0,1), seasonal = c(1,2,3))
+tsdiag(unique.301.123)
+```
+
+The diagnostic tests show that this model is not an appropriate fit to the data. 
+
+```{r}
+unique.100.221 <- Arima(unique, order = c(1,0,0), seasonal = c(2,2,1))
+tsdiag(unique.100.221)
+```
+
+The diagnostic criteria also shows this model is not an appropriate fit to the data. 
 
 
+```{r}
+unique.506.223 <- Arima(unique, order = c(5,0,6), seasonal = c(2,2,3))
+tsdiag(unique.506.223)
+```
+
+```{r}
+checkresiduals(unique.506.223)
+```
+
+Based on the model diagnostics, this is an appropriate model for the data. 
 
