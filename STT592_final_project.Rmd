@@ -22,19 +22,26 @@ library(TSA)
 traffic <- read.csv('Data/daily-website-visitors.csv')
 ```
 
+This project uses data recording internet traffic at various websites. The variables of interest include the number of page loads each day, the number of unique visitors each day, and the number of returning visitors each day. We will first perform univariate time series analysis on each of the three variables to forecast the next X observations. Next, we will perform multivariate time series analysis using all three variables to forecast the next X observations. Finally, we will perform dynamic regression using returning visitors as the outcome variable and page loads and unique visitors as predictors. 
+
 # Univariate Unique Visits 
 
+## Daily Unique Visits 
+
 ```{r isolate unique visits}
-unique <- ts(select(traffic, Unique.Visits), 
-             freq = 7,
-             start = c(2014, 257))
+unique <- ts(select(traffic, Unique.Visits),
+             frequency = 7)
 ```
 
-```{r}
-autoplot(unique) 
+```{r, dpi=300}
+autoplot(unique) +
+  theme_classic() +
+  labs(y = 'Number of Unique Visits',
+       title = 'Daily Unique Website Visits') +
+  theme(text = element_text(family = 'serif'))
 ```
 
-Check if variable is stationary 
+The time series plot appears to show seasonal fluctuations, which means we need to take the seasonal difference before fitting the model. 
 
 ```{r}
 par(mfrow = c(1,2), family = 'serif')
@@ -42,55 +49,21 @@ acf(unique)
 pacf(unique)
 ```
 
+Fluctuations in the ACF plot also suggest a seasonal component based on the pattern of significant autocorrelation coefficients spiking at each seasonal lag. 
+
 
 ```{r}
 adf.test(unique)
 ```
 
-ADF test says data are stationary.
+According to the ADF test, the data are stationary; however, this test is not sensitive to seasonal fluctuations. This indicates there may be no long-term trend in the data. 
 
 
 ```{r}
 summary(ur.kpss(unique))
 ```
 
-KPSS says data are not stationary.
-
-ACF plot suggests there are seasonal fluctuations in the data. 
-
-We will take the seasonal difference of the data before checking for stationarity. 
-
-```{r}
-unique.diff.1 <- diff(unique)
-autoplot(unique.diff.1)
-```
-
-```{r}
-par(mfrow = c(1,2))
-acf(unique.diff.1)
-pacf(unique.diff.1)
-```
-
-ACF plot is kind of crazy 
-
-```{r}
-adf.test(unique.diff.1)
-```
-
-ADF says data are stationary. 
-
-```{r}
-summary(ur.kpss(unique.diff.1))
-```
-
-KPSS also says data are stationary.
-
-```{r}
-nsdiffs(unique)
-frequency(unique)
-```
-
-Function says number of seasonal differences to take is 0. 
+The KPSS test suggests the data are non-stationary. This may be a result of a long-term trend that is not yet detected or a result of the seasonal component influencing the stationary measure. We will take one seasonal difference and re-evaluate the data. 
 
 ```{r}
 unique.sdiff.1 <- diff(unique, lag = 7)
@@ -99,62 +72,69 @@ acf(unique.sdiff.1)
 pacf(unique.sdiff.1)
 ```
 
-PACF tail off so we need seasonal MA part 
+After taking the seasonal difference, the ACF appears to show a sinous shape, and the PACF appears to be tailing off with spikes at the seasonal lags. The PACF suggests a seasonal moving average component to the model as well as a regular moving average component because there are significant partial correlation coefficients surrounding the seasonal lags. 
 
 ```{r}
 autoplot(unique.sdiff.1)
 ```
 
+The time series plot appears to show less seasonal fluctuation now and appears to be stationary. 
 
 ```{r}
 adf.test(unique.sdiff.1)
 ```
 
-ADF says data are stationary.
+The ADF test suggests the data are stationary.
 
 ```{r}
 summary(ur.kpss(unique.sdiff.1))
 ```
 
-KPSS also says data are stationary.
+The KPSS test also suggests the data are stationary. We will now identify some candidate models to fit to this variable. 
+
+### identify candidate models 
+
+We will use the auto.arima() function to identify one candidate model. 
 
 ```{r}
-unique.sdiff.2 <- diff(unique.sdiff.1, lag = 7)
-par(mfrow = c(1,2), family = 'serif')
-acf(unique.sdiff.2) 
-pacf(unique.sdiff.2)
+unique.auto <- auto.arima(unique)
+unique.auto
 ```
+
+The auto.arima() function identified a SARIMA(1,0,3) x (0,1,2) model. 
+
+Based on the ACF and PACF plots, we will fit the following three candidate models: 
+* SARIMA(5,0,1) x (2,1,2)
+* SARIMA(1,0,2) x (2,1,4)
+* SARIMA(1,0,3) x (0,1,2) - from auto.arima() 
+
+### Fit Candidate Models and Evaluate Diagnostics 
+
+SARIMA(5,0,1) x (2,1,2)
 
 ```{r}
-autoplot(unique.sdiff.2)
+unique.501.212 <- Arima(unique, order = c(5,0,1), seasonal = c(2,1,2))
+tsdiag(unique.501.212)
 ```
+
+Based on the model diagnostics, this model is not appropriate for the data. The Ljung-Box test shows many significant p-values, indicating that the residuals are not independent. 
+
+SARIMA(1,0,2) x (2,1,4)
 
 ```{r}
-adf.test(unique.sdiff.2)
+unique.102.214 <- Arima(unique, order = c(1,0,2), seasonal = c(2,1,4))
+tsdiag(unique.102.214)
 ```
 
-ADF says data are stationary.
+The model diagnostics of this model also indicate it is not an appropriate fit to the data based on the significant Ljung-Box p-values. 
+
+SARIMA(1,0,3) x (0,1,2) 
 
 ```{r}
-summary(ur.kpss(unique.sdiff.2))
+tsdiag(unique.auto)
 ```
 
-KPSS says data are stationary.
-
-## identify candidate models 
-
-
-```{r}
-auto.arima(unique)
-```
-
-Auto ARIMA does not include a seasonal component or regular differencing. 
-
-CANDIDATE MODELS 
-* SARIMA(1,0,1) x (2,2,2)
-* SARIMA(0,0,2) x (2,2,2)
-* ARIMA(5,0,1) - from auto.arima()
-
+The model diagnostics for the auto.arima() model also show that it is not an appropriate fit for the data based on the Ljung-Box p-values. 
 
 
 
