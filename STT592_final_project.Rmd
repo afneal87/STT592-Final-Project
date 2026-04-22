@@ -325,4 +325,7 @@ return.accuracy <- as.data.frame(accuracy(return.forecast, return.test)) %>%
   mutate(variable = 'return_visits')
 ```
 
+# Multivariate Time Series Model 
 
+
+# Dynamic Regression Model 
