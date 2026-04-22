@@ -200,6 +200,8 @@ checkresiduals(unique.506.223)
 
 Based on the model diagnostics, this is an appropriate model for the data. 
 
+Now, we will predict the next 217 observations. 
+
 ```{r}
 unique.forecast <- forecast(unique.506.223, h = pred_num)
 ```
@@ -209,7 +211,118 @@ autoplot(unique) +
   autolayer(unique.forecast, alpha = .5)
 ```
 
+The prediction interval covers the actual data, but the point predictions do not follow the fluctuations in the data. 
+
 ```{r}
-accuracy(unique.forecast, unique.test)
+unique.accuracy <- as.data.frame(accuracy(unique.forecast, unique.test)) %>%
+  mutate(variable = 'unique_visits')
 ```
+
+## Returning Visits 
+
+```{r}
+return <- ts(select(traffic, Returning.Visits),
+             freq = 7) 
+#split into training and testing sets 
+pred_num <- round(length(return)*0.1, 0)
+train_num <- length(return) - pred_num
+return.train <- head(return, train_num)
+return.test <- tail(return, pred_num)
+```
+
+```{r}
+autoplot(return.train)
+```
+
+The time series plot appears to show seasonal fluctuations but no long-term trend. We will test whether this data is already stationary.
+
+```{r}
+adf.test(return.train)
+```
+
+The ADF test indicates the data are stationary.
+
+```{r}
+summary(ur.kpss(return.train))
+```
+
+The KPSS test indicates the data are not stationary. This means some differencing may be required. We will start by taking one seasonal difference. 
+
+```{r}
+return.sdiff.1 <- diff(return, lag = 7)
+autoplot(return.sdiff.1)
+```
+
+Taking the seasonal difference appears to remove the cyclical fluctuations from the data, so it looks more stationary. 
+
+```{r}
+par(mfrow = c(1,2), family = 'serif')
+acf(return.sdiff.1)
+pacf(return.sdiff.1)
+```
+
+The ACF and PACF plots appear to tail off, indicating there may be both an AR and MA component. 
+
+```{r}
+adf.test(return.sdiff.1)
+```
+
+The ADF test indicates the seasonally differenced data are stationary.
+
+```{r}
+summary(ur.kpss(return.sdiff.1))
+```
+
+The KPSS test also indicates that the seasonally differenced data are stationary. We will now identify some candidate models to fit to the data. Since we have taken the seasonal difference, we may need to identify seasonal AR and MA components as well as regular components. 
+
+Based on the ACF and PACF plots, candidate models we will fit to the data are 
+* SARIMA(5,0,3) x (3,1,4)
+* SARIMA(6,0,5) x (4,1,3) 
+
+We will also evaluate the model chosen by the auto.arima() function. 
+
+```{r}
+return.auto <- auto.arima(return.train)
+tsdiag(return.auto)
+```
+
+The model chosen by auto.arima() does not appear to be an appropriate fit for the data based on diagnostic criteria.  
+
+SARIMA(5,0,3) x (3,1,4)
+```{r}
+return.503.314 <- Arima(return.train, order = c(5,0,3), seasonal = c(3,1,4))
+tsdiag(return.503.314)
+```
+
+Based on the diagnostic criteria, this model is not an appropriate fit to the data. There are significant p-values in the Ljung-Box test, indicating the residuals are not independent. 
+
+SARIMA(6,0,5) x (4,1,3)
+```{r}
+return.605.413 <- Arima(return.train, order = c(6,0,5), seasonal = c(4,1,3))
+tsdiag(return.605.314)
+```
+
+The diagnostic criteria indicate that this model is an appropriate fit to the data. We will also check for normal distribution of residuals. 
+
+```{r}
+checkresiduals(return.605.314)
+```
+
+The residuals appear to follow a normal distribution, which provides further support for the model. This is the most appropriate fit for the data. 
+
+Now, we will predict the next 217 observations using the chosen model. 
+
+```{r}
+return.forecast <- forecast(return.605.413, h = pred_num)
+autoplot(return) +
+  autolayer(return.forecast, alpha = .5)
+```
+
+The forecasted values follow the fluctuations of the data and the real data fall within the prediction intervals. 
+
+```{r}
+return.accuracy <- as.data.frame(accuracy(return.forecast, return.test)) %>%
+  mutate(variable = 'return_visits')
+```
+
 
