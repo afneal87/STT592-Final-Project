@@ -16,6 +16,7 @@ library(fpp2)
 library(ggplot2)
 library(urca)
 library(TSA)
+library(MTS)
 ```
 
 ```{r read in data}
@@ -327,5 +328,153 @@ return.accuracy <- as.data.frame(accuracy(return.forecast, return.test)) %>%
 
 # Multivariate Time Series Model 
 
+```{r, dpi=300}
+multi <- ts(select(traffic, Page.Loads, Unique.Visits, Returning.Visits))
+autoplot(multi, facet = TRUE) +
+  theme_minimal() +
+  theme(text = element_text(family = 'serif'))
+```
+
+```{r, dpi=300}
+multi_sdiff_1 <- diff(multi, lag = 7)
+autoplot(multi_sdiff_1, facet = TRUE) +
+  theme_minimal() +
+  theme(text = element_text(family = 'serif'))
+```
+
+```{r}
+multi_train <- head(multi_sdiff_1, train_num)
+multi_test <- tail(multi_sdiff_1, pred_num)
+```
+
+We will examine the cross-correlations of the data. 
+
+```{r, dpi=300}
+ccm(multi_train)
+```
+
+The cross-correlation matrix shows significant cross-correlations through lag 6. 
+
+We will start with a VARMA(1,0) model. 
+
+```{r}
+multi_fit.1 <- VARMA(multi_train, p = 1, q = 0)
+ccm(multi_fit.1$residuals)
+enter
+```
+
+There are significant cross-correlations among the residuals, so we need to increase the order of the model. 
+
+```{r}
+multi_fit.2 <- VARMA(multi_sdiff_1, p = 2, q = 0)
+ccm(multi_fit.2$residuals)
+enter
+```
+
+Significant cross-correlations among residuals suggest this model is not an appropriate fit for the data. 
+
+```{r}
+multi_fit.3 <- VARMA(multi_sdiff_1, p = 3, q = 0)
+ccm(multi_fit.3$residuals)
+enter
+```
+
+There are fewer significant cross-correlations, but this model is still not appropriate for the data. 
+
+```{r}
+multi_fit.4 <- VARMA(multi_sdiff_1, p = 4, q = 0)
+ccm(multi_fit.4$residuals)
+enter
+```
+
+There are still significant cross-correlations so this model is not a good fit. 
+
+```{r}
+multi_fit.5 <- VARMA(multi_sdiff_1, p = 5, q = 0)
+ccm(multi_fit.5$residuals)
+enter
+```
+
+```{r}
+multi_fit.6 <- VARMA(multi_sdiff_1, p = 6, q = 0)
+ccm(multi_fit.6$residuals)
+enter
+```
+
+```{r}
+multi_fit.6.1 <- VARMA(multi_sdiff_1, p = 6, q = 1)
+ccm(multi_fit.6.1$residuals)
+enter
+```
+
+```{r}
+multi_fit.6.2 <- VARMA(multi_sdiff_1, p = 6, q = 2)
+ccm(multi_fit.6.2$residuals)
+enter
+```
+
+```{r}
+multi_fit.7 <- VARMA(multi_sdiff_1, p = 7, q = 0)
+ccm(multi_fit.7$residuals)
+enter
+```
+
+```{r}
+multi_fit.8 <- VARMA(multi_sdiff_1, p = 8, q = 0)
+ccm(multi_fit.8$residuals)
+enter
+```
+
+```{r}
+multi_fit.9 <- VARMA(multi_sdiff_1, p = 9, q = 0)
+ccm(multi_fit.9$residuals)
+enter
+```
+
+```{r}
+multi_fit.10 <- VARMA(multi_sdiff_1, p = 9, q = 1)
+ccm(multi_fit.10$residuals)
+enter
+```
+
+```{r}
+multi_fit.11 <- VARMA(multi_sdiff_1, p = 9, q = 2)
+ccm(multi_fit.11$residuals)
+enter
+```
+
+```{r}
+multi_fit.12 <- VARMA(multi_sdiff_1, p = 10, q = 0)
+ccm(multi_fit.12$residuals)
+enter
+```
+
+```{r}
+multi_fit.13 <- VARMA(multi_sdiff_1, p = 11, q = 0)
+ccm(multi_fit.13$residuals)
+enter
+```
+
+```{r}
+multi_fit.14 <- VARMA(multi_sdiff_1, p = 12, q = 0)
+ccm(multi_fit.14$residuals)
+enter
+```
+
+```{r}
+multi_fit.15 <- VARMA(multi_sdiff_1, p = 12, q = 7)
+ccm(multi_fit.15$residuals)
+enter
+```
+
+```{r}
+multi_fit.16 <- VARMA(multi_sdiff_1, p = 11, q = 7)
+ccm(multi_fit.16$residuals)
+enter
+```
+
+Adding two moving average components did not improve the fit of the model. 
 
 # Dynamic Regression Model 
+
+
