@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r packages}
 library(dplyr)
+library(fable) #VARIMA model
 library(tseries)
 library(fpp2)
 library(ggplot2)
@@ -366,7 +367,7 @@ enter
 There are significant cross-correlations among the residuals, so we need to increase the order of the model. 
 
 ```{r}
-multi_fit.2 <- VARMA(multi_sdiff_1, p = 2, q = 0)
+multi_fit.2 <- VARMA(multi_train, p = 2, q = 0)
 ccm(multi_fit.2$residuals)
 enter
 ```
@@ -374,7 +375,7 @@ enter
 Significant cross-correlations among residuals suggest this model is not an appropriate fit for the data. 
 
 ```{r}
-multi_fit.3 <- VARMA(multi_sdiff_1, p = 3, q = 0)
+multi_fit.3 <- VARMA(multi_train, p = 3, q = 0)
 ccm(multi_fit.3$residuals)
 enter
 ```
@@ -382,7 +383,7 @@ enter
 There are fewer significant cross-correlations, but this model is still not appropriate for the data. 
 
 ```{r}
-multi_fit.4 <- VARMA(multi_sdiff_1, p = 4, q = 0)
+multi_fit.4 <- VARMA(multi_train, p = 4, q = 0)
 ccm(multi_fit.4$residuals)
 enter
 ```
@@ -390,90 +391,106 @@ enter
 There are still significant cross-correlations so this model is not a good fit. 
 
 ```{r}
-multi_fit.5 <- VARMA(multi_sdiff_1, p = 5, q = 0)
+multi_fit.5 <- VARMA(multi_train, p = 5, q = 0)
 ccm(multi_fit.5$residuals)
 enter
 ```
 
 ```{r}
-multi_fit.6 <- VARMA(multi_sdiff_1, p = 6, q = 0)
+multi_fit.6 <- VARMA(multi_train, p = 6, q = 0)
 ccm(multi_fit.6$residuals)
 enter
 ```
 
 ```{r}
-multi_fit.6.1 <- VARMA(multi_sdiff_1, p = 6, q = 1)
+multi_fit.6.1 <- VARMA(multi_train, p = 6, q = 1)
 ccm(multi_fit.6.1$residuals)
 enter
 ```
 
 ```{r}
-multi_fit.6.2 <- VARMA(multi_sdiff_1, p = 6, q = 2)
+multi_fit.6.2 <- VARMA(multi_train, p = 6, q = 2)
 ccm(multi_fit.6.2$residuals)
 enter
 ```
 
 ```{r}
-multi_fit.7 <- VARMA(multi_sdiff_1, p = 7, q = 0)
+multi_fit.7 <- VARMA(multi_train, p = 7, q = 0)
 ccm(multi_fit.7$residuals)
 enter
 ```
 
 ```{r}
-multi_fit.8 <- VARMA(multi_sdiff_1, p = 8, q = 0)
+multi_fit.8 <- VARMA(multi_train, p = 8, q = 0)
 ccm(multi_fit.8$residuals)
 enter
 ```
 
 ```{r}
-multi_fit.9 <- VARMA(multi_sdiff_1, p = 9, q = 0)
+multi_fit.9 <- VARMA(multi_train, p = 9, q = 0)
 ccm(multi_fit.9$residuals)
 enter
 ```
 
 ```{r}
-multi_fit.10 <- VARMA(multi_sdiff_1, p = 9, q = 1)
+multi_fit.10 <- VARMA(multi_train, p = 9, q = 1)
 ccm(multi_fit.10$residuals)
 enter
 ```
 
 ```{r}
-multi_fit.11 <- VARMA(multi_sdiff_1, p = 9, q = 2)
+multi_fit.11 <- VARMA(multi_train, p = 9, q = 2)
 ccm(multi_fit.11$residuals)
 enter
 ```
 
 ```{r}
-multi_fit.12 <- VARMA(multi_sdiff_1, p = 10, q = 0)
+multi_fit.12 <- VARMA(multi_train, p = 10, q = 0)
 ccm(multi_fit.12$residuals)
 enter
 ```
 
 ```{r}
-multi_fit.13 <- VARMA(multi_sdiff_1, p = 11, q = 0)
+multi_fit.13 <- VARMA(multi_train, p = 11, q = 0)
 ccm(multi_fit.13$residuals)
 enter
 ```
 
 ```{r}
-multi_fit.14 <- VARMA(multi_sdiff_1, p = 12, q = 0)
+multi_fit.14 <- VARMA(multi_train, p = 12, q = 0)
 ccm(multi_fit.14$residuals)
 enter
 ```
 
+There are still two significant cross-correlations at lags 7 and 12. To improve the model fit, we will add a moving average component to address the cross-correlation at lag 7. 
+
 ```{r}
-multi_fit.15 <- VARMA(multi_sdiff_1, p = 12, q = 7)
+multi_fit.15 <- VARMA(multi_train, p = 12, q = 7)
 ccm(multi_fit.15$residuals)
 enter
 ```
 
+Adding a moving average component MA(7) improved the fit of the model, and there are no longer any significant cross-correlations. 
+
+We will now use the identified model to predict the next 217 observations. 
+
 ```{r}
-multi_fit.16 <- VARMA(multi_sdiff_1, p = 11, q = 7)
-ccm(multi_fit.16$residuals)
-enter
+# page loads 
+page_loads_pred <- VARMApred(multi_fit.15, h = pred_num)$pred[,1]
+page_loads_df <- VARMApred(multi_fit.15, h = pred_num)$se.err[,1]
+page_loads_forecast <- cumsum(c(multi[1,1], multi_train[,1], page_loads_pred)) 
 ```
 
-Adding two moving average components did not improve the fit of the model. 
+```{r}
+par(family = 'serif')
+plot(page_loads_forecast[1:1950], xlim = c(0,2200), type = 'l', lwd = 2)
+lines(page_loads_forecast[1950:2168], x=seq(1950, 2168, 1), type = 'l', col = 'red', lty = 2, lwd = 2)
+```
+
+
+
+
+
 
 # Dynamic Regression Model 
 
