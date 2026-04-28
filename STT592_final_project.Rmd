@@ -28,6 +28,80 @@ This project uses data recording internet traffic at various websites. The varia
 
 # Univariate Unique Visits 
 
+## Daily Page Loads
+
+```{r}
+web_ts <- ts(traffic %>%
+               select(Page.Loads),
+             start = c(2014, 257),
+             frequency = 7)
+```
+
+```{r, dpi=300}
+autoplot(web_ts) +
+  theme_classic() +
+  theme(text = element_text(family = 'serif')) +
+  labs(y = 'Number of Page Loads',
+       title = 'Daily Page Loads')
+```
+
+```{r}
+autoplot(diff(web_ts, lag =7)) +
+  theme_classic() +
+  theme(text = element_text(family = 'serif')) +
+  labs(y = 'Number of Page Loads',
+       title = 'Daily Page Loads Seasonally Differenced Once')
+```
+
+```{r}
+web_1 = diff(web_ts, lag =7)
+```
+
+```{r}
+adf.test(web_1)
+```
+
+```{r}
+summary(ur.kpss(web_1))
+```
+
+```{r}
+par(mfrow = c(1,2), family = 'serif')
+acf(web_ts)
+pacf(web_ts)
+```
+
+```{r}
+par(mfrow = c(1,2), family = 'serif')
+acf(web_1)
+pacf(web_1)
+dev.off()
+```
+
+```{r}
+model1 = Arima(web_ts[, "Page.Loads"],
+                    order = c(5, 0, 6),
+                    seasonal = list(order = c(1, 1, 1), period = 7))
+model1
+```
+
+```{r}
+tsdiag(model1)
+```
+
+```{r}
+checkresiduals(model1)
+```
+
+```{r, dpi=300}
+# Forecast the next 30 days
+my_forecast <- forecast(model1, h = 30)
+
+# Plot it!
+par(family = 'serif')
+plot(my_forecast)
+```
+
 ## Daily Unique Visits 
 
 ```{r isolate unique visits}
@@ -523,6 +597,20 @@ lines(returning_visits_forecast[1950:2168]-(2*returning_visits_sd), x=seq(1950, 
 legend('bottomright', legend = c('Returning Visits Data', 'Forecasted Returning Visits', '95% Confidence Interval'), col = c(1,2,'blue'), lty = c(1,2,3), lwd = c(2,2,2))
 ```
 
+```{r}
+multi_pageloads_accuracy <- as.data.frame(accuracy(page_loads_forecast[1951:2168], multi_test[,1])) %>%
+  mutate(variable = 'VARMA_page_loads')
+```
+
+```{r}
+multi_uniquevisits_accuracy <- as.data.frame(accuracy(unique_visits_forecast[1951:2168], multi_test[,2])) %>%
+  mutate(variable = 'VARMA_unique_visits')
+```
+
+```{r}
+multi_returnvisits_accuracy <- as.data.frame(accuracy(returning_visits_forecast, multi_test[,3])) %>%
+  mutate(variable = 'VARMA_returning_visits')
+```
 
 
 
