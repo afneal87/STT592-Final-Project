@@ -451,7 +451,7 @@ We will start with a VARMA(1,0) model.
 ```{r}
 multi_fit.1 <- VARMA(multi_train, p = 1, q = 0)
 ccm(multi_fit.1$residuals)
-enter
+print('next')
 ```
 
 There are significant cross-correlations among the residuals, so we need to increase the order of the model. 
@@ -459,7 +459,7 @@ There are significant cross-correlations among the residuals, so we need to incr
 ```{r}
 multi_fit.2 <- VARMA(multi_train, p = 2, q = 0)
 ccm(multi_fit.2$residuals)
-enter
+print('next')
 ```
 
 Significant cross-correlations among residuals suggest this model is not an appropriate fit for the data. 
@@ -467,7 +467,7 @@ Significant cross-correlations among residuals suggest this model is not an appr
 ```{r}
 multi_fit.3 <- VARMA(multi_train, p = 3, q = 0)
 ccm(multi_fit.3$residuals)
-enter
+print('next')
 ```
 
 There are fewer significant cross-correlations, but this model is still not appropriate for the data. 
@@ -475,7 +475,7 @@ There are fewer significant cross-correlations, but this model is still not appr
 ```{r}
 multi_fit.4 <- VARMA(multi_train, p = 4, q = 0)
 ccm(multi_fit.4$residuals)
-enter
+print('next')
 ```
 
 There are still significant cross-correlations so this model is not a good fit. We will continue to increase the AR order to find a more appropriate fit for the data. 
@@ -483,73 +483,73 @@ There are still significant cross-correlations so this model is not a good fit. 
 ```{r}
 multi_fit.5 <- VARMA(multi_train, p = 5, q = 0)
 ccm(multi_fit.5$residuals)
-enter
+print('next')
 ```
 
 ```{r}
 multi_fit.6 <- VARMA(multi_train, p = 6, q = 0)
 ccm(multi_fit.6$residuals)
-enter
+print('next')
 ```
 
 ```{r}
 multi_fit.6.1 <- VARMA(multi_train, p = 6, q = 1)
 ccm(multi_fit.6.1$residuals)
-enter
+print('next')
 ```
 
 ```{r}
 multi_fit.6.2 <- VARMA(multi_train, p = 6, q = 2)
 ccm(multi_fit.6.2$residuals)
-enter
+print('next')
 ```
 
 ```{r}
 multi_fit.7 <- VARMA(multi_train, p = 7, q = 0)
 ccm(multi_fit.7$residuals)
-enter
+print('next')
 ```
 
 ```{r}
 multi_fit.8 <- VARMA(multi_train, p = 8, q = 0)
 ccm(multi_fit.8$residuals)
-enter
+print('next')
 ```
 
 ```{r}
 multi_fit.9 <- VARMA(multi_train, p = 9, q = 0)
 ccm(multi_fit.9$residuals)
-enter
+print('next')
 ```
 
 ```{r}
 multi_fit.10 <- VARMA(multi_train, p = 9, q = 1)
 ccm(multi_fit.10$residuals)
-enter
+print('next')
 ```
 
 ```{r}
 multi_fit.11 <- VARMA(multi_train, p = 9, q = 2)
 ccm(multi_fit.11$residuals)
-enter
+print('next')
 ```
 
 ```{r}
 multi_fit.12 <- VARMA(multi_train, p = 10, q = 0)
 ccm(multi_fit.12$residuals)
-enter
+print('next')
 ```
 
 ```{r}
 multi_fit.13 <- VARMA(multi_train, p = 11, q = 0)
 ccm(multi_fit.13$residuals)
-enter
+print('next')
 ```
 
 ```{r}
 multi_fit.14 <- VARMA(multi_train, p = 12, q = 0)
 ccm(multi_fit.14$residuals)
-enter
+print('next')
 ```
 
 There are still two significant cross-correlations at lags 7 and 12. To improve the model fit, we will add a moving average component to address the cross-correlation at lag 7. 
@@ -557,7 +557,7 @@ There are still two significant cross-correlations at lags 7 and 12. To improve 
 ```{r}
 multi_fit.15 <- VARMA(multi_train, p = 12, q = 7)
 ccm(multi_fit.15$residuals)
-enter
+print('next')
 ```
 
 Adding a moving average component MA(7) improved the fit of the model, and there are no longer any significant cross-correlations. 
