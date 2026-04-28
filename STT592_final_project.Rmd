@@ -477,15 +477,52 @@ We will now use the identified model to predict the next 217 observations.
 ```{r}
 # page loads 
 page_loads_pred <- VARMApred(multi_fit.15, h = pred_num)$pred[,1]
-page_loads_df <- VARMApred(multi_fit.15, h = pred_num)$se.err[,1]
+page_loads_sd <- VARMApred(multi_fit.15, h = pred_num)$se.err[,1]
 page_loads_forecast <- cumsum(c(multi[1,1], multi_train[,1], page_loads_pred)) 
 ```
 
-```{r}
+```{r, dpi=300}
 par(family = 'serif')
-plot(page_loads_forecast[1:1950], xlim = c(0,2200), type = 'l', lwd = 2)
+plot(page_loads_forecast[1:1950], xlim = c(0,2200), type = 'l', lwd = 2,
+     main = 'Forecasted Page Loads', xlab = 'Time', ylab = 'Number of Page Loads')
 lines(page_loads_forecast[1950:2168], x=seq(1950, 2168, 1), type = 'l', col = 'red', lty = 2, lwd = 2)
+lines(page_loads_forecast[1950:2168]+(2*page_loads_sd), x=seq(1950, 2168, 1), col = 'blue', type = 'l', lwd = 2, lty = 3)
+lines(page_loads_forecast[1950:2168]-(2*page_loads_sd), x=seq(1950, 2168, 1), col = 'blue', type = 'l', lwd = 2, lty = 3)
+legend('bottomright', legend = c('Page Loads Data', 'Forecasted Page Loads', '95% Confidence Interval'), col = c(1,2,'blue'), lty = c(1,2,3), lwd = c(2,2,2))
 ```
+
+```{r}
+unique_visits_pred <- VARMApred(multi_fit.15, h = pred_num)$pred[,2]
+unique_visits_sd <- VARMApred(multi_fit.15, h = pred_num)$se.err[,2]
+unique_visits_forecast <- cumsum(c(multi[1,2], multi_train[,2], unique_visits_pred))
+```
+
+```{r, dpi=300}
+par(family = 'serif')
+plot(unique_visits_forecast[1:1950], xlim = c(0,2200), type = 'l', lwd = 2,
+     main = 'Forecasted Unique Visits', xlab = 'Time', ylab = 'Number of Unique Visits')
+lines(unique_visits_forecast[1950:2168], x=seq(1950, 2168, 1), type = 'l', col = 'red', lty = 2, lwd = 2)
+lines(unique_visits_forecast[1950:2168]+(2*unique_visits_sd), x=seq(1950, 2168, 1), col = 'blue', type = 'l', lwd = 2, lty = 3)
+lines(unique_visits_forecast[1950:2168]-(2*unique_visits_sd), x=seq(1950, 2168, 1), col = 'blue', type = 'l', lwd = 2, lty = 3)
+legend('bottomright', legend = c('Unique Visits Data', 'Forecasted Unique Visits', '95% Confidence Interval'), col = c(1,2,'blue'), lty = c(1,2,3), lwd = c(2,2,2))
+```
+
+```{r}
+returning_visits_pred <- VARMApred(multi_fit.15, h = pred_num)$pred[,3]
+returning_visits_sd <- VARMApred(multi_fit.15, h = pred_num)$se.err[,3]
+returning_visits_forecast <- cumsum(c(multi[1,3], multi_train[,3], returning_visits_pred))
+```
+
+```{r, dpi=300}
+par(family = 'serif')
+plot(returning_visits_forecast[1:1950], xlim = c(0,2200), type = 'l', lwd = 2,
+     main = 'Forecasted Returning Visits', xlab = 'Time', ylab = 'Number of Returning Visits')
+lines(returning_visits_forecast[1950:2168], x=seq(1950, 2168, 1), type = 'l', col = 'red', lty = 2, lwd = 2)
+lines(returning_visits_forecast[1950:2168]+(2*returning_visits_sd), x=seq(1950, 2168, 1), col = 'blue', type = 'l', lwd = 2, lty = 3)
+lines(returning_visits_forecast[1950:2168]-(2*returning_visits_sd), x=seq(1950, 2168, 1), col = 'blue', type = 'l', lwd = 2, lty = 3)
+legend('bottomright', legend = c('Returning Visits Data', 'Forecasted Returning Visits', '95% Confidence Interval'), col = c(1,2,'blue'), lty = c(1,2,3), lwd = c(2,2,2))
+```
+
 
 
 
