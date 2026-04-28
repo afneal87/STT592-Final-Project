@@ -246,7 +246,20 @@ tsdiag(unique.506.213)
 checkresiduals(unique.506.213)
 ```
 
+```{r}
+summary(unique.506.213)
+```
+
 Based on the model diagnostics, this is an appropriate model for the data. 
+
+The final model equation is 
+$\phi_p(B)\Phi_P(B^s)W_t = \theta_q(B)\Theta_Q(B^s)e_t$ 
+Where 
+$W_t = \triangledown_sX_t = X_t - X_{t-s}$
+$\phi_p(B) = 1 - 0.07B - 0.09B^2 + 0.03B^3 + 0.08B^4 + 0.01B^5$
+$\Phi_P(B) = 1 - 0.13B^s + 0.69B^{2s}$ 
+$\theta_q(B) = 1 + 1.04B + 0.90B^2 + 0.75B^3 + 0.59B^4 + 0.51B^5 + 0.59B^6$
+$\Theta_Q(B) = 1 + 0.04B - 0.92B^2 - 0.12B^3$
 
 Now, we will predict the next 217 observations. 
 
@@ -365,7 +378,20 @@ The diagnostic criteria indicate that this model is an appropriate fit to the da
 checkresiduals(return.605.413)
 ```
 
+```{r}
+summary(return.605.413)
+```
+
 The residuals appear to follow a normal distribution, which provides further support for the model. This is the most appropriate fit for the data. 
+
+The final model equation is 
+$\phi_p(B)\Phi_P(B^s)W_t = \theta_q(B)\Theta_Q(B^s)e_t$ 
+Where 
+$W_t = \triangledown_sX_t = X_t - X_{t-s}$
+$\phi_p(B) = 1 - 0.01B + 0.87B^2 + 0.15B^3 - 0.43B^4 - 0.07B^5 + 0.34B^6$
+$\Phi_P(B) = 1 + 0.74B^s - 0.25B^{2s} + 0.06B^{3s} + 0.08B^{4s}$
+$\theta_q(B) = 1 + 0.59B - 0.45B^2 - 0.24B^3 + 0.34B^4 + 0.29B^5$
+$\Theta_Q(B) = 1 - 1.46B^s + 0.62B^{2s} - 0.13B^{3s}$
 
 Now, we will predict the next 217 observations using the chosen model. 
 
@@ -536,6 +562,26 @@ enter
 
 Adding a moving average component MA(7) improved the fit of the model, and there are no longer any significant cross-correlations. 
 
+The final model equation is represented by the Phi and Theta matrices of the output. 
+$X_t = C + \Phi + \Theta$ 
+
+Where C represents a vector of constants, $\Phi$ represents a matrix of autoregressive coefficients, and $\Theta$ represents a matrix of moving average coefficients. 
+
+The vector of constants is
+```{r}
+multi_fit.15$Ph0
+```
+
+The matrix of autoregressive coefficients is 
+```{r}
+multi_fit.15$Phi
+```
+
+The matrix of moving average coefficients is 
+```{r}
+multi_fit.15$Theta
+```
+
 We will now use the identified model to predict the next 217 observations of each variable individually. 
 
 ```{r}
@@ -627,4 +673,4 @@ accuracy <- rbind(univ_accuracy[,-6],
 flextable(accuracy %>% rownames_to_column('Set'))
 ```
 
-Based on the accuracy metrics, the univariate analyses appear to produce more accurate forecast predictions than the multivariate VARMA model. The VARMA model included a very large number of parameters, which may have caused overfitting to the training data, making the predictions less accurate. 
+Based on the accuracy metrics, the dynamic regression model produced the most accurate predictions. Additionally, the univariate analyses appear to produce more accurate forecast predictions than the multivariate VARMA model. The VARMA model included a very large number of parameters, which may have caused overfitting to the training data, making the predictions less accurate. Additionally, across the univariate models, the accuracy metrics show better accuracy in the training sets than the testing sets. The univariate models also included higher order models with many parameters, and the metrics suggest that the models were over fit to the training sets and not giving accurate predictions for testing sets. 
