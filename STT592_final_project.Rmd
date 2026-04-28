@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r packages}
+library(tibble)
 library(dplyr)
 library(tseries)
 library(fpp2)
@@ -69,6 +70,8 @@ adf.test(web_1)
 summary(ur.kpss(web_1))
 ```
 
+## Identify Candidate Models 
+
 ```{r, dpi=300}
 par(mfrow = c(1,2), family = 'serif')
 acf(web_ts)
@@ -81,6 +84,8 @@ acf(web_1)
 pacf(web_1)
 dev.off()
 ```
+
+## Fit Candidate Model and Check Diagnostics 
 
 ```{r}
 model1 = Arima(web_train,
@@ -109,6 +114,7 @@ plot(my_forecast)
 ```{r}
 page_loads_accuracy <- as.data.frame(accuracy(my_forecast, web_test)) %>%
   mutate(variable = 'page_loads')
+accuracy(my_forecast, web_test)
 ```
 
 ## Daily Unique Visits 
@@ -260,6 +266,7 @@ The prediction interval covers the actual data, but the point predictions do not
 ```{r}
 unique.accuracy <- as.data.frame(accuracy(unique.forecast, unique.test)) %>%
   mutate(variable = 'unique_visits')
+accuracy(unique.forecast, unique.test)
 ```
 
 ## Returning Visits 
@@ -375,6 +382,7 @@ The forecasted values follow the fluctuations of the data and the real data fall
 ```{r}
 return.accuracy <- as.data.frame(accuracy(return.forecast, return.test)) %>%
   mutate(variable = 'return_visits')
+accuracy(return.forecast, return.test)
 ```
 
 # Multivariate Time Series Model 
@@ -580,20 +588,27 @@ legend('bottomright', legend = c('Returning Visits Data', 'Forecasted Returning 
 ```
 
 ```{r}
-multi_pageloads_accuracy <- as.data.frame(accuracy(page_loads_forecast[1951:2168], multi_test[,1])) %>%
+multi_pageloads_accuracy <- as.data.frame(accuracy(page_loads_forecast, web_test)) %>%
   mutate(variable = 'VARMA_page_loads')
+accuracy(page_loads_forecast, web_test)
 ```
 
 ```{r}
-multi_uniquevisits_accuracy <- as.data.frame(accuracy(unique_visits_forecast[1951:2168], multi_test[,2])) %>%
+multi_uniquevisits_accuracy <- as.data.frame(accuracy(unique_visits_forecast, unique.test)) %>%
   mutate(variable = 'VARMA_unique_visits')
 ```
 
 ```{r}
-multi_returnvisits_accuracy <- as.data.frame(accuracy(returning_visits_forecast, multi_test[,3])) %>%
+multi_returnvisits_accuracy <- as.data.frame(accuracy(returning_visits_forecast, return.test)) %>%
   mutate(variable = 'VARMA_returning_visits')
 ```
 
+```{r}
+multi_accuracy <- rbind(multi_pageloads_accuracy,
+                        multi_uniquevisits_accuracy,
+                        multi_returnvisits_accuracy)
+flextable(multi_accuracy %>% rownames_to_column('Set'))
+```
 
 
 # Dynamic Regression Model 
@@ -605,11 +620,11 @@ multi_returnvisits_accuracy <- as.data.frame(accuracy(returning_visits_forecast,
 univ_accuracy <- rbind(page_loads_accuracy, 
                   unique.accuracy,
                   return.accuracy)
-multi_accuracy <- rbind(univ_accuracy[,-6],
-                        multi_pageloads_accuracy,
-                        multi_uniquevisits_accuracy,
-                        multi_returnvisits_accuracy)
-flextable(multi_accuracy)
+accuracy <- rbind(univ_accuracy[,-6],
+                  multi_pageloads_accuracy,
+                  multi_uniquevisits_accuracy,
+                   multi_returnvisits_accuracy)
+flextable(accuracy %>% rownames_to_column('Set'))
 ```
 
 Based on the accuracy metrics, the univariate analyses appear to produce more accurate forecast predictions than the multivariate VARMA model. The VARMA model included a very large number of parameters, which may have caused overfitting to the training data, making the predictions less accurate. 
